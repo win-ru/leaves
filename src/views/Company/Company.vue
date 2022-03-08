@@ -338,9 +338,16 @@ export default {
         this.snackbar_text = "Обновили данные";
       }
       else{
-        this.$store.state.api.addCompany(post_data);
-        // просто без проверок
-        this.snackbar_text = "Добавили новую";
+        const companyAlreadyExists =
+            this.company_list.find(x => x.name_ru === post_data.data.name_ru || x.name_eng === post_data.data.name_eng)
+        console.log('companyExists', companyAlreadyExists)
+        if (!companyAlreadyExists) {
+          this.$store.state.api.addCompany(post_data);
+          // просто без проверок
+          this.snackbar_text = "Добавили новую";
+        } else {
+          this.snackbar_text = "Компания уже есть в списке";
+        }
       }
 
       console.log(post_data);
