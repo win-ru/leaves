@@ -2,8 +2,17 @@
 
 <script>
 
+import JsonCSV from 'vue-json-csv'
+//import {convertCSVToArray} from "convert-csv-to-array";
+
+//import csv from "@/assets/00.csv";
+
+//require("csv-parse/lib/es5);
+
+
 export default {
   name: "CompanyList",
+  components:{'downloadCsv': JsonCSV},
 
 
   data () {
@@ -21,16 +30,17 @@ export default {
 
       working: false,
 
+
       company:{
         id:           0,
         name_ru:      "",
         name_eng:     "",
         brand:        "",
         description:  "",
-        year_in:      "",
-        year_out:     "",
-        year_return:  "",
-        status:       5,
+        year_in:      "2022-01-01",
+        year_out:     "2022-04-01",
+        year_return:  "2022-01-01",
+        status:       1,
         is_leave:     true,
         comment:      "",
         links:        [],
@@ -42,6 +52,10 @@ export default {
         links_text:   "",
         images_text:  "",
         peoples_text: "",
+        inn:          "",
+        FIO:          "",
+        published:    false,
+
       },
 
       dialog: false,
@@ -58,7 +72,7 @@ export default {
         year_in:      "",
         year_out:     "",
         year_return:  "",
-        status:       5,
+        status:       1,
         is_leave:     true,
         comment:      "",
         links:        [],
@@ -69,8 +83,14 @@ export default {
         country_root: "",
         links_text:   "",
         images_text:  "",
-        peoples_text: ""
+        peoples_text: "",
+        inn:          "",
+        FIO:          "",
+        published:    false,
+
       },
+
+      search: '',
 
       headers: [
         { text: 'ID', value: 'id' },
@@ -82,72 +102,181 @@ export default {
         { text: 'Бренд', value: 'brand' },
         { text: 'Сегмент', value: 'segment' },
         { text: 'Ушли', value: 'year_out' },
-        { text: 'Плохость', value: 'rage' },
-        { text: 'Действия', value: 'actions', sortable: false },
+
       ],
       satisfactionEmojis: ['😍', '😄', '😁', '😊', '🙂', '😐', '🙁', '☹️', '😢', '😭'],
 
+      snackbar: false,
+      snackbar_text: 'My timeout is set to 2000.',
+      snackbar_timeout: 2000,
+
       status:[
         {
+          id:0,
+          name:"Нейтральный",
+          color: 'grey'
+        },
+        {
           id:1,
-          name:"Зеленый"
+          name:"Зеленый",
+          color: 'green'
         },
         {
           id:2,
-          name:"Желтый"
+          name:"Желтый",
+          color: 'yellow'
         },
         {
           id:3,
-          name:"Красный"
+          name:"Красный",
+          color: 'red'
         },
       ],
 
       segment:[
         {
           id:0,
-          name:"Пусто"
+          name:"Не выбрано"
         },
         {
           id:1,
-          name:"IT"
+          name:"IT и технологии"
         },
         {
           id:2,
-          name:"Ресурсы"
+          name:"Ресурсы и энергетика"
         },
         {
           id:3,
           name:"Транспорт"
         },
+        {
+          id:4,
+          name:"Финансы"
+        },
+        {
+          id:5,
+          name:"Крипта"
+        },
+        {
+          id:6,
+          name:"Доставка и логистика"
+        },
+        {
+          id:7,
+          name:"Ритейл"
+        },
+        {
+          id:8,
+          name:"Досуг"
+        },
+        {
+          id:9,
+          name:"Медицина и фармация"
+        },
+        {
+          id:10,
+          name:"Прочее"
+        },
       ]
-
-
-
     }
   },
 
   created() {
     console.log('company created');
-    this.loadList();
+    this.loadList(1);
   },
 
   mounted() {
     console.log('company mounted');
   },
 
+  computed:{
+
+    add_update_text: function(){
+      return this.company_edited.id === 0 ? "Добавить" : "Обновить";
+    },
+
+    add_update_color: function(){
+      return this.company_edited.id === 0 ? "blue" : "amber";
+    },
+
+  },
+
 
   methods:{
 
-    loadList(){
 
-      let pr = this.$store.state.api.loadCompanyList();
+
+
+    toCSV(){
+
+      console.log('!');
+
+      //var url_string = "https://catone.app/00.csv"; //window.location.href
+
+      const { convertCSVToArray } = require('convert-csv-to-array');
+      //const converter = require('convert-csv-to-array');
+
+      const data = 'number;first;last;handle\n1;Mark;Otto;@mdo\n2;Jacob;Thornton;@fat\n3;Larry;the Bird;@twitter\n';
+
+
+
+      const arrayofArrays = convertCSVToArray(data, {
+        type: 'array',
+        separator: ';', // use the separator you use in your csv (e.g. '\t', ',', ';' ...)
+      });
+
+      console.log(arrayofArrays);
+
+
+      fetch('https://202702.selcdn.ru/zakaz/d/A1300C78A0/00.csv')
+          .then((response) => {
+            return response.text();
+          })
+          .then((data) => {
+            console.log(data);
+
+            let aaa = convertCSVToArray(data, {
+              type: 'array',
+              separator: ',', // use the separator you use in your csv (e.g. '\t', ',', ';' ...)
+            });
+
+            console.log(aaa);
+          });
+
+
+    },
+
+    loadList(i=1){
+
+      if (i===1){
+        this.ready = false;
+        this.search="";
+        this.company_list = [];
+      }
+
+      let pr = this.$store.state.api.loadCompanyList(i);
 
 
       pr.then( data =>{
 
         console.log(data);
-        this.company_list = data;
-        this.ready = true;
+
+        //this.company_list.push(data.data);
+        Array.prototype.push.apply(this.company_list, data.data);
+
+        if (data.meta.pagination.page<data.meta.pagination.pageCount){
+          this.loadList(data.meta.pagination.page+1);
+        }
+        else{
+          this.ready = true;
+        }
+
+
+
+
+
 
       })
 
@@ -159,6 +288,16 @@ export default {
       this.company_edited = item;
 
       //console.log(this.company_list[item.id]);
+
+    },
+
+    deleteCompany(id){
+
+      this.$store.state.api.deleteCompany(id);
+
+      // просто без проверок
+      this.snackbar_text = "Удалили данные";
+      this.snackbar = true;
 
     },
 
@@ -187,21 +326,25 @@ export default {
           links_text:   this.company_edited.links_text,
           images_text:  this.company_edited.images_text,
           peoples_text: this.company_edited.peoples_text,
+          inn:          this.company_edited.inn,
+          FIO:          this.company_edited.FIO,
+          published:    this.company_edited.published
         }
       }
 
 
       if (this.company_edited.id>0){
         this.$store.state.api.updateCompany(post_data, this.company_edited.id);
+        this.snackbar_text = "Обновили данные";
       }
       else{
         this.$store.state.api.addCompany(post_data);
+        // просто без проверок
+        this.snackbar_text = "Добавили новую";
       }
 
       console.log(post_data);
-
-
-
+      this.snackbar = true;
     },
 
 

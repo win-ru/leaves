@@ -2,7 +2,7 @@
 
 export default class API_connector{
 
-    static api_base_url             = "http://api.leavers.ru:1337/api"
+    static api_base_url             = "https://api.leavers.ru/api"
     static api_base_dev_url         = "##"
     static api_url                  = API_connector.api_base_url
 
@@ -14,8 +14,6 @@ export default class API_connector{
     hello(){
         console.log('api hello');
     }
-
-
 
 
     async post(url, data, json=true, isPublicQuery = false){
@@ -84,6 +82,24 @@ export default class API_connector{
 
     }
 
+    async delete(url){
+
+        //let tk = localStorage.getItem("user-token");
+
+        let headers = {
+            'Authorization': 'Bearer '+ API_connector.token,
+            'Content-Type': 'application/json'
+        }
+
+        let r = await fetch(API_connector.api_url + url,
+            {
+                method: "DELETE",
+                headers: headers
+            })
+        return r.json();
+
+    }
+
     async get(url, json=true){
 
        // let tk = localStorage.getItem("user-token");
@@ -108,11 +124,22 @@ export default class API_connector{
 
     }
 
-    async loadCompanyList(){
+    async loadCompanyList(i = 1){
+
+        const qs = require('qs');
+
+        let query = qs.stringify({
+            pagination: {
+                page: i,
+                pageSize: 100,
+            },
+        }, {
+            encodeValuesOnly: true,
+        });
 
         console.log('11');
-        let t = await this.get('/companies');
-        return t.data
+        let t = await this.get('/companies?'+query);
+        return t
 
     }
 
@@ -171,6 +198,11 @@ export default class API_connector{
 
     async updateCompany(data, id){
         let t = await this.put('/companies/'+id, data);
+        return t.data
+    }
+
+    async deleteCompany(id){
+        let t = await this.delete('/companies/'+id);
         return t.data
     }
 

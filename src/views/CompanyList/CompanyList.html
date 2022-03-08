@@ -1,0 +1,87 @@
+<div>
+
+  <v-container v-if="!ready">
+    Грузимся
+  </v-container>
+
+  <v-container v-else>
+
+
+
+        <v-data-table
+                :headers="headers"
+                :items="company_list"
+                sort-by="calories"
+                class="elevation-1"
+                :search="search"
+        >
+          <template v-slot:top>
+            <v-toolbar
+                    flat
+            >
+              <v-toolbar-title>
+                <v-btn
+                        @click="loadList(1)"
+                        color="green"
+                        dark
+                >
+                  Обновить таблицу
+                </v-btn>
+              </v-toolbar-title>
+              <v-divider
+                      class="mx-4"
+                      inset
+                      vertical
+              ></v-divider>
+
+              <v-spacer></v-spacer>
+
+              <v-text-field
+                      v-model="search"
+                      append-icon="mdi-magnify"
+                      label="Поиск"
+                      single-line
+                      hide-details
+                      outlined
+              ></v-text-field>
+
+            </v-toolbar>
+          </template>
+
+          <template v-slot:item.id="{ item }">
+            <v-chip
+                    :class="{'blue': item.id === company_edited.id }"
+            >
+              {{item.id}}
+            </v-chip>
+
+          </template>
+
+          <template v-slot:item.name_ru="{ item }">
+            <v-chip
+                    :color="status[item.status].color"
+            >
+            </v-chip>
+            {{item.name_ru}}
+
+          </template>
+
+        </v-data-table>
+
+
+
+
+
+  </v-container>
+
+
+
+
+
+
+
+
+
+
+
+</div>
